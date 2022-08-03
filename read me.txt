@@ -11,7 +11,9 @@ Hoặc dùng Chanel để khỏi xử dụng Mutex Lock (recommended)
 ===========================================
 
 
-Keyword:
+Keywords:
 container.list to get advance list
-Mutex Lock
+MutexLock
+WaitGroup
 Collection List
+sqlx golang (Nên xài nếu hiệu năng là ưu tiên cao nhất)

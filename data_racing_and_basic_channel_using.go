@@ -22,7 +22,7 @@ func gotDataRacingIssue() {
 
 	for i := 1; i <= 5; i++ {
 		go func() {
-			// Data racing right here because multiple routiens is writting on 1 variable
+			// Data racing right here because multiple routiens is writting on 1 variable (count)
 			for j := 1; j <= 10000; j++ {
 				count += 1
 			}
