@@ -50,13 +50,14 @@ func main() {
 	var notes []Note
 	db.Where("content IS NOT NULL").Find(&notes)
 
+	// First function will throw error if no data return
 	var note Note
 	if err := db.Where("id = ?", 3).First(&note); err == nil {
 		log.Println(err)
 	}
 
 	newTitle := ""
-	db.Updates(&NoteUpdate{Title: &newTitle})
+	db.Table(Note{}.TableName()).Where("id = ?", note.Id).Updates(&NoteUpdate{Title: &newTitle})
 
 	db.Table(Note{}.TableName()).Where("id = ?", 5).Delete(nil)
 
