@@ -1,0 +1,17 @@
+Shard db cho MySQL tham khỏa vitess
+OAuth cho Go, ory/fosite hay ory/hydrax (Nên xài thư viện thì auth rất quan trong trong microservice, toang n là đi hết)
+Xem Effective Go website để biết thêm chi tiết
+Bản thân golang là sync language nó sẽ chạy từ trên xuống dưới
+Routines nhẹ hơn thread rất nhiều và 1 thread có thể chạy nhiều routines
+
+===========================================
+Data racing (common issue): Xảy ra nếu có nhiều routiens ghi liên tục vào 1 biến => kq cuối cũng sẽ không đúng
+Dùng Mutex Lock để handle lỗi này sync.RWMutex
+Hoặc dùng Chanel để khỏi xử dụng Mutex Lock (recommended)
+===========================================
+
+
+Keyword:
+container.list to get advance list
+Mutex Lock
+Collection List
