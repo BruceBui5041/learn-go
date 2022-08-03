@@ -1,4 +1,4 @@
-package main
+package data_racing_and_basic_channel_using
 
 import (
 	"fmt"
