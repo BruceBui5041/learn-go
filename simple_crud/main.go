@@ -38,11 +38,9 @@ func main() {
 	}
 
 	db.AutoMigrate(&Note{})
-	/**
-		Insert
-	**/
-	// newNote := Note{Title: "Test Note 3", Content: "Test content 3"}
 
+	// Insert
+	// newNote := Note{Title: "Test Note 3", Content: "Test content 3"}
 	// if err := db.Create(&newNote); err != nil {
 	// 	fmt.Println(err)
 	// }
