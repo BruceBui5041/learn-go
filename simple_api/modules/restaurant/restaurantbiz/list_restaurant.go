@@ -20,8 +20,7 @@ type listRestaurantBiz struct {
 	store ListRestaurantStore
 }
 
-//	NOTE: *listRestaurantBiz | Return về con trỏ là để tối ưu cho khỏi copy rồi return về 1 copy object của listRestaurantBiz
-
+// /	NOTE: *listRestaurantBiz | Return về con trỏ là để tối ưu cho khỏi copy rồi return về 1 copy object của listRestaurantBiz
 func NewListRestaurantBiz(store ListRestaurantStore) *listRestaurantBiz {
 	return &listRestaurantBiz{store: store}
 }

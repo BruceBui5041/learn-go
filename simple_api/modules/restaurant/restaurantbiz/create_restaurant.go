@@ -13,8 +13,7 @@ type createRestaurantBiz struct {
 	store CreateRestaurantStore
 }
 
-//	NOTE: *createRestaurantBiz | Return về con trỏ là để tối ưu cho khỏi copy rồi return về 1 copy object của createRestaurantBiz
-
+// NOTE: *createRestaurantBiz | Return về con trỏ là để tối ưu cho khỏi copy rồi return về 1 copy object của createRestaurantBiz
 func NewCreateRestaurantBiz(store CreateRestaurantStore) *createRestaurantBiz {
 	return &createRestaurantBiz{store: store}
 }
