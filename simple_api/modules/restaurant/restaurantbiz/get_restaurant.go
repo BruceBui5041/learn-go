@@ -6,7 +6,7 @@ import (
 )
 
 type GetRestaurantStore interface {
-	GetRestaurantById(ctx context.Context, restaurantId int, moreKeys ...string) (*restaurantmodel.Restaurant, error)
+	GetRestaurant(ctx context.Context, restaurant map[string]interface{}, moreKeys ...string) (*restaurantmodel.Restaurant, error)
 }
 
 type getRestaurantBiz struct {
@@ -22,7 +22,11 @@ func (biz *getRestaurantBiz) GetRestaurantById(
 	restaurantId int,
 	moreKeys ...string,
 ) (*restaurantmodel.Restaurant, error) {
-	result, err := biz.store.GetRestaurantById(ctx, restaurantId, moreKeys...)
+	condition := map[string]interface{}{
+		"id": restaurantId,
+	}
+
+	result, err := biz.store.GetRestaurant(ctx, condition, moreKeys...)
 
 	return result, err
 }
