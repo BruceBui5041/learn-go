@@ -2,13 +2,14 @@ package restaurantmodel
 
 import (
 	"errors"
+	"learn-go/simple_api/common"
 	"strings"
 )
 
 type Restaurant struct {
-	Id   int    `json:"id" gorm:"column:id;"`
-	Name string `json:"name" gorm:"column:name;"`
-	Addr string `json:"address" gorm:"column:addr;"`
+	common.SQLModel `json:",inline"` // NOTE: json:",inline": to make it spread properties into Restaurant, not create a new SQLModel key
+	Name            string           `json:"name" gorm:"column:name;"`
+	Addr            string           `json:"address" gorm:"column:addr;"`
 }
 
 func (Restaurant) TableName() string {

@@ -1,4 +1,4 @@
-Shard db cho MySQL tham khỏa vitess
+Shard db cho MySQL tham khảo vitess
 OAuth cho Go, ory/fosite hay ory/hydrax (Nên xài thư viện thì auth rất quan trong trong microservice, toang n là đi hết)
 Xem Effective Go website để biết thêm chi tiết
 Bản thân golang là sync language nó sẽ chạy từ trên xuống dưới
@@ -16,6 +16,13 @@ Hoặc dùng Chanel để khỏi xử dụng Mutex Lock (recommended)
 
 PUT là update toàn bộ record còn PATCH thì chỉ update 1 phần thôi
 Mỗi request thì sẽ được xử lý trong một routine
+
+
+Error Handling===========================================
+phải có code, message phải dễ hiểu, sử dụng custom code để có thể response message lỗi với nhiều ngôn ngữ, trace_id để tracing lỗi
+Xử lý crashes như một cái error bình thường
+Cần ẩn đi những sensitive errors, nhưng phải ghi lại log đó để cho người có quyền vào xem và debug
+=========================================================
 
 
 ===================================================================================

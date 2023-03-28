@@ -2,7 +2,10 @@ package restaurantstorage
 
 import (
 	"context"
+	"learn-go/simple_api/common"
 	"learn-go/simple_api/modules/restaurant/restaurantmodel"
+
+	"gorm.io/gorm"
 )
 
 func (s *sqlStore) GetRestaurant(
@@ -42,6 +45,9 @@ func (s *sqlStore) GetRestaurant(
 	}
 
 	if err := db.First(&result).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, common.RecordNotFound
+		}
 		return nil, err
 	}
 

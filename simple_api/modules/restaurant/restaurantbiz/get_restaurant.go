@@ -2,6 +2,8 @@ package restaurantbiz
 
 import (
 	"context"
+	"errors"
+	"learn-go/simple_api/common"
 	"learn-go/simple_api/modules/restaurant/restaurantmodel"
 )
 
@@ -27,6 +29,18 @@ func (biz *getRestaurantBiz) GetRestaurantById(
 	}
 
 	result, err := biz.store.GetRestaurant(ctx, condition, moreKeys...)
+
+	if err != nil {
+		if err == common.RecordNotFound {
+			return nil, err
+		}
+
+		return nil, err
+	}
+
+	if result.Status == 0 {
+		return nil, errors.New("data deleted")
+	}
 
 	return result, err
 }
