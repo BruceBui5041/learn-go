@@ -2,6 +2,7 @@ package restaurantstorage
 
 import (
 	"context"
+	"learn-go/simple_api/common"
 	"learn-go/simple_api/modules/restaurant/restaurantmodel"
 )
 
@@ -26,7 +27,7 @@ func (s *sqlStore) SoftDeleteData(ctx context.Context, condition map[string]inte
 	if err := db.
 		Table(restaurantmodel.Restaurant{}.TableName()).
 		Updates(map[string]interface{}{"status": 0}).Error; err != nil {
-		return err
+		return common.ErrDB(err)
 	}
 
 	return nil

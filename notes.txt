@@ -32,3 +32,33 @@ MutexLock
 WaitGroup
 Collection List
 sqlx golang (Nên xài nếu hiệu năng là ưu tiên cao nhất)
+
+Use pointers for large structs: 
+    When passing large structs to functions, use pointers to avoid copying the entire struct. This reduces memory usage and speeds up the code execution.
+
+Prefer short-lived small allocations: 
+    Go's garbage collector is optimized for short-lived small allocations. Try to keep memory allocations small and short-lived whenever possible.
+
+Use the sync.Pool for frequently reused objects: 
+    When you have objects that are frequently created and discarded, consider using a sync.Pool to reuse those objects and reduce the load on the garbage collector.
+
+Be mindful of goroutines: 
+    Goroutines are lightweight, but creating too many of them can still impact performance. Always be mindful of the number of goroutines you are creating and try to limit them when possible.
+
+Use buffered channels: 
+    When using channels for communication between goroutines, consider using buffered channels to reduce the contention between goroutines, especially when the channel operation is time-consuming.
+
+Optimize CPU-bound operations: 
+    Use profiling tools like pprof to identify CPU-bound operations in your code and optimize them, for example, by using more efficient algorithms or data structures.
+
+Minimize locking: 
+    When using mutexes and other synchronization primitives, be cautious about how much locking you use. Locking can introduce contention and hurt performance. Consider using lock-free data structures, atomic operations, or other concurrency patterns to reduce lock contention.
+
+Optimize memory access patterns: 
+    Be aware of how your code accesses memory, as cache locality can impact performance. Accessing memory in a linear fashion or reusing recently accessed memory can lead to better performance.
+
+Use built-in functions when available: 
+    Built-in functions are usually optimized for performance. When possible, use built-in functions rather than implementing your own.
+
+Profile and benchmark your code: 
+    Regularly profile and benchmark your code to identify performance bottlenecks and optimize them. Use tools like pprof, benchstat, and testing package's benchmarking features to measure and compare your code's performance.

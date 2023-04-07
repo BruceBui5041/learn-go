@@ -9,7 +9,7 @@ import (
 
 type AppError struct {
 	StatusCode int    `json:"status_code"`
-	RootErr    error  `json:"-"` // NOTE: Nhu vầy là không cho về client "-"
+	RootErr    error  `json:"-"` // NOTE: Nhu vầy là không cho response về client "-"
 	Message    string `json:"message"`
 	Log        string `json:"log"`
 	Key        string `json:"error_key"`
@@ -53,7 +53,7 @@ func NewCustomError(root error, msg, log, key string) *AppError {
 	return NewErrorResponse(errors.New(msg), msg, msg, key)
 }
 
-// / NOTE: Đệ quy để lay node erro cha cuối cùng
+// NOTE: Đệ quy để lay node error cha cuối cùng
 func (e *AppError) RootError() error {
 	if err, ok := e.RootErr.(*AppError); ok {
 		return err.RootError()
@@ -83,6 +83,15 @@ func ErrCannotListEntity(entity string, err error) *AppError {
 		err,
 		fmt.Sprintf("Cannot list %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotList%s", entity),
+		"ErrCannotList",
+	)
+}
+
+func ErrCannotDeleteEntity(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("Cannot list %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotList %s", entity),
 		"ErrCannotList",
 	)
 }
