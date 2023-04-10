@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const Entity = "Restaurant"
+
 type Restaurant struct {
 	common.SQLModel `json:",inline"` // NOTE: json:",inline": to make it spread properties into Restaurant, not create a new SQLModel key
 	Name            string           `json:"name" gorm:"column:name;"`

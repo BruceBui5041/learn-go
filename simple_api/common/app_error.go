@@ -90,8 +90,44 @@ func ErrCannotListEntity(entity string, err error) *AppError {
 func ErrCannotDeleteEntity(entity string, err error) *AppError {
 	return NewCustomError(
 		err,
-		fmt.Sprintf("Cannot list %s", strings.ToLower(entity)),
-		fmt.Sprintf("ErrCannotList %s", entity),
-		"ErrCannotList",
+		fmt.Sprintf("Cannot delete %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotDelete %s", entity),
+		"ErrCannotDeleteEntity",
+	)
+}
+
+func ErrEntityDeleted(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("%s deleted", strings.ToLower(entity)),
+		fmt.Sprintf("ErrEntity%sDeleted", entity),
+		"ErrEntityDeleted",
+	)
+}
+
+func ErrCannotGetEntity(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("Cannot get %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotGet %s", entity),
+		"ErrCannotGetEntity",
+	)
+}
+
+func ErrEntityExisted(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("%s already existed", strings.ToLower(entity)),
+		fmt.Sprintf("Err%sAlreadyExisted ", entity),
+		"ErrEntityExisted",
+	)
+}
+
+func ErrEntityNotFound(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("%s not found", strings.ToLower(entity)),
+		fmt.Sprintf("Err%sNotFound", entity),
+		"ErrEntityNotFound",
 	)
 }

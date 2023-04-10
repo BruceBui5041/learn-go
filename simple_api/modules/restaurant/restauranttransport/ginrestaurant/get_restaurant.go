@@ -16,10 +16,7 @@ func GetRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 		restaurantId, err := strconv.Atoi(c.Param("id"))
 
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "id must be a integer number",
-			})
-			return
+			panic(common.ErrInvalidRequest(err))
 		}
 
 		store := restaurantstorage.NewSQLStore(appContext.GetMainDBConnection())
@@ -28,17 +25,7 @@ func GetRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 		result, err := biz.GetRestaurantById(c.Request.Context(), restaurantId)
 
 		if err != nil {
-			statusCode := http.StatusUnauthorized
-
-			if err.Error() == "record not found" {
-				statusCode = http.StatusNotFound
-			}
-
-			c.JSON(statusCode, gin.H{
-				"error": err.Error(),
-			})
-
-			return
+			panic(err)
 		}
 
 		c.JSON(http.StatusOK, common.SimpleSuccessResponse(result))

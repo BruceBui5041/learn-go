@@ -2,6 +2,7 @@ package main
 
 import (
 	"learn-go/simple_api/component"
+	"learn-go/simple_api/middleware"
 	"learn-go/simple_api/modules/restaurant/restauranttransport/ginrestaurant"
 	"log"
 	"net/http"
@@ -29,15 +30,18 @@ func main() {
 }
 
 func runService(db *gorm.DB) error {
+	appContext := component.NewAppContext(db)
+
 	r := gin.Default()
+
+	// NOTE: Sử dung middleware
+	r.Use(middleware.Recover(appContext))
 
 	r.GET("/ping", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
-
-	appContext := component.NewAppContext(db)
 
 	restaurants := r.Group("/restaurants")
 	{
