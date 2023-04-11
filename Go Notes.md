@@ -52,12 +52,33 @@ Dưới đây là một số thực hành tốt nhất khi phát triển Golang:
 
 ## Golang không có try/catch nhưng có cơ chế Panic & Recover
 
-# Panic & Recover in GoLang
+### Panic & Recover in GoLang
 
 - Panic is a built-in function that stops the ordinary flow of control and begins panicking
 - When function F calls panic, execution of F stops, but deffered functions in F will still executing
 - Recover is a built-in function that regains control of panicking
 - Recover only useful inside deferred functions
+
+### Cơ chế panic và recover sẽ hoạt động trên 1 current stack trace
+
+- Nên tạo 1 hàm recover chung để handle trường hợp này. Check AppRecover function trong code
+
+```
+func willBeErrFunc() {
+
+    go func() { // go routine sẽ tạo ra một stack mới
+        defer common.AppRecover() // NOTE: Sử dụng 1 hàm defer để recover panic trong go routine
+
+        // NOTE: panic này sẽ làm program exit luôn vì nó không panicking trên current stack trace có recover()
+        panic("Panic not on the current stack trace")
+    }()
+
+
+    panic("Panic on the current stack trace")
+    recover()
+}
+
+```
 
 ## Các điều khác
 
