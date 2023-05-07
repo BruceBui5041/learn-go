@@ -2,8 +2,10 @@ package main
 
 import (
 	"learn-go/simple_api/component"
+	"learn-go/simple_api/component/uploadprovider"
 	"learn-go/simple_api/middleware"
 	"learn-go/simple_api/modules/restaurant/restauranttransport/ginrestaurant"
+	"learn-go/simple_api/modules/upload/uploadtransport/ginupload"
 	"log"
 	"net/http"
 
@@ -18,19 +20,27 @@ func main() {
 	viper.ReadInConfig()
 	dsn := viper.GetString("DBConnectionStr")
 
+	s3BucketName := viper.GetString("S3BucketName")
+	s3Region := viper.GetString("S3Region")
+	s3APIKey := viper.GetString("S3APIKey")
+	s3SecretKey := viper.GetString("S3SecretKey")
+	s3Domain := viper.GetString("S3Domain")
+
+	s3Provider := uploadprovider.NewS3Provider(s3BucketName, s3Region, s3APIKey, s3SecretKey, s3Domain)
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if err := runService(db); err != nil {
+	if err := runService(db, s3Provider); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func runService(db *gorm.DB) error {
-	appContext := component.NewAppContext(db)
+func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider) error {
+	appContext := component.NewAppContext(db, uploadProvider)
 
 	r := gin.Default()
 
@@ -42,6 +52,8 @@ func runService(db *gorm.DB) error {
 			"message": "pong",
 		})
 	})
+
+	r.POST("/upload", ginupload.Upload(appContext))
 
 	restaurants := r.Group("/restaurants")
 	{

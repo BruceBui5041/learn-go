@@ -12,6 +12,8 @@ type Restaurant struct {
 	common.SQLModel `json:",inline"` // NOTE: json:",inline": to make it spread properties into Restaurant, not create a new SQLModel key
 	Name            string           `json:"name" gorm:"column:name;"`
 	Addr            string           `json:"address" gorm:"column:addr;"`
+	Logo            *common.Image    `json:"logo" gorm:"column:logo;"`
+	Cover           *common.Images   `json:"cover" gorm:"column:cover;"`
 }
 
 func (Restaurant) TableName() string {
@@ -19,8 +21,11 @@ func (Restaurant) TableName() string {
 }
 
 type RestaurantUpdate struct {
-	Name *string `json:"name" gorm:"column:name;"`
-	Addr *string `json:"address" gorm:"column:addr;"`
+	Name *string       `json:"name" gorm:"column:name;"`
+	Addr *string       `json:"address" gorm:"column:addr;"`
+	Logo *common.Image `json:"logo" gorm:"column:logo;"`
+	// NOTE: Nếu sử dụng []Image thì sẽ gặp lỗi nên phải tạo alias Images type trong common để sử dụng
+	Cover *common.Images `json:"cover" gorm:"column:cover;"`
 }
 
 func (RestaurantUpdate) TableName() string {
@@ -28,9 +33,11 @@ func (RestaurantUpdate) TableName() string {
 }
 
 type RestaurantCreate struct {
-	Id   int    `json:"id" gorm:"column:id;"`
-	Name string `json:"name" gorm:"column:name;"`
-	Addr string `json:"address" gorm:"column:addr;"`
+	Id    int            `json:"id" gorm:"column:id;"`
+	Name  string         `json:"name" gorm:"column:name;"`
+	Addr  string         `json:"address" gorm:"column:addr;"`
+	Logo  *common.Image  `json:"logo" gorm:"column:logo;"`
+	Cover *common.Images `json:"cover" gorm:"column:cover;"`
 }
 
 func (RestaurantCreate) TableName() string {
