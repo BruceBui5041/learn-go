@@ -6,14 +6,13 @@ import (
 	"learn-go/simple_api/modules/restaurant/restaurantbiz"
 	"learn-go/simple_api/modules/restaurant/restaurantstorage"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		restaurantId, err := strconv.Atoi(c.Param("id"))
+		uid, err := common.FromBase58(c.Param("id"))
 
 		if err != nil {
 			panic(common.ErrInvalidRequest(err))
@@ -22,11 +21,13 @@ func GetRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 		store := restaurantstorage.NewSQLStore(appContext.GetMainDBConnection())
 		biz := restaurantbiz.NewGetRestaurantBiz(store)
 
-		result, err := biz.GetRestaurantById(c.Request.Context(), restaurantId)
+		result, err := biz.GetRestaurantById(c.Request.Context(), int(uid.GetLocalID()))
 
 		if err != nil {
 			panic(err)
 		}
+
+		result.Mask(false)
 
 		c.JSON(http.StatusOK, common.SimpleSuccessResponse(result))
 	}

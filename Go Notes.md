@@ -21,6 +21,7 @@ Dưới đây là một số thực hành tốt nhất khi phát triển Golang:
 ## Cơ sở dữ liệu
 
 - Để tăng tốc độ tìm kiếm trong cơ sở dữ liệu có quan hệ Many2Many, hãy đánh chỉ mục bảng có nhiều bản ghi hơn trước
+- Để tăng tốc độ load page nhất là với infinity scroll thì nên dùng Seek Method (tìm kiếm `<` `>` với id) thay vì OFFSET trong DB
 
 ## Yêu cầu HTTP
 
@@ -86,6 +87,7 @@ func willBeErrFunc() {
 - Sử dụng sqlx Golang khi hiệu năng là ưu tiên hàng đầu
 - Xem xét sử dụng Collection List
 - Sử dụng WaitGroup
+- **Embed Struct**: https://gobyexample.com/struct-embedding
 
 ===============================================================================================================================
 

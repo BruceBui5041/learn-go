@@ -6,14 +6,13 @@ import (
 	"learn-go/simple_api/modules/restaurant/restaurantbiz"
 	"learn-go/simple_api/modules/restaurant/restaurantstorage"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func DeleteRestaurant(appContext component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		restaurantId, err := strconv.Atoi(c.Param("id"))
+		restaurantUID, err := common.FromBase58(c.Param("id"))
 
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -25,7 +24,7 @@ func DeleteRestaurant(appContext component.AppContext) gin.HandlerFunc {
 		store := restaurantstorage.NewSQLStore(appContext.GetMainDBConnection())
 		biz := restaurantbiz.NewDeleteRestaurantBiz(store)
 
-		if err := biz.SoftDeleteRestaurant(c.Request.Context(), restaurantId); err != nil {
+		if err := biz.SoftDeleteRestaurant(c.Request.Context(), int(restaurantUID.GetLocalID())); err != nil {
 
 			statusCode := http.StatusUnauthorized
 

@@ -7,14 +7,13 @@ import (
 	"learn-go/simple_api/modules/restaurant/restaurantmodel"
 	"learn-go/simple_api/modules/restaurant/restaurantstorage"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UpdateRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		restaurantId, err := strconv.Atoi(c.Param("id"))
+		restaurantId, err := common.FromBase58(c.Param("id"))
 
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -34,7 +33,7 @@ func UpdateRestaurantById(appContext component.AppContext) gin.HandlerFunc {
 		store := restaurantstorage.NewSQLStore(appContext.GetMainDBConnection())
 		biz := restaurantbiz.NewUpdateRestaurantBiz(store)
 
-		if err := biz.UpdateRestaurant(c.Request.Context(), restaurantId, &data); err != nil {
+		if err := biz.UpdateRestaurant(c.Request.Context(), int(restaurantId.GetLocalID()), &data); err != nil {
 
 			statusCode := http.StatusUnauthorized
 
