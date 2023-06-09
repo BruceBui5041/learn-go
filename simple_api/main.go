@@ -6,6 +6,7 @@ import (
 	"learn-go/simple_api/middleware"
 	"learn-go/simple_api/modules/restaurant/restauranttransport/ginrestaurant"
 	"learn-go/simple_api/modules/upload/uploadtransport/ginupload"
+	"learn-go/simple_api/modules/user/usertransport/ginuser"
 	"log"
 	"net/http"
 
@@ -25,6 +26,7 @@ func main() {
 	s3APIKey := viper.GetString("S3APIKey")
 	s3SecretKey := viper.GetString("S3SecretKey")
 	s3Domain := viper.GetString("S3Domain")
+	JWTSecretKey := viper.GetString("JWTSecretKey")
 
 	s3Provider := uploadprovider.NewS3Provider(s3BucketName, s3Region, s3APIKey, s3SecretKey, s3Domain)
 
@@ -34,13 +36,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err := runService(db, s3Provider); err != nil {
+	if err := runService(db, s3Provider, JWTSecretKey); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider) error {
-	appContext := component.NewAppContext(db, uploadProvider)
+func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSecretToken string) error {
+	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken)
 
 	r := gin.Default()
 
@@ -53,9 +55,14 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider) error
 		})
 	})
 
-	r.POST("/upload", ginupload.Upload(appContext))
+	v1 := r.Group("/v1")
 
-	restaurants := r.Group("/restaurants")
+	v1.POST("/upload", ginupload.Upload(appContext))
+	v1.POST("/register", ginuser.Register(appContext))
+	v1.POST("/login", ginuser.Login(appContext))
+	v1.GET("/profile", middleware.RequiredAuth(appContext), ginuser.GetProfile(appContext))
+
+	restaurants := v1.Group("/restaurants", middleware.RequiredAuth(appContext))
 	{
 		restaurants.POST("", ginrestaurant.CreateRestaurant(appContext))
 		restaurants.GET("/:id", ginrestaurant.GetRestaurantById(appContext))

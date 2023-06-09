@@ -88,6 +88,8 @@ func willBeErrFunc() {
 - Xem xét sử dụng Collection List
 - Sử dụng WaitGroup
 - **Embed Struct**: https://gobyexample.com/struct-embedding
+- Nếu user off cookies ở browser thì session còn chạy được không ?: Ko, vì cookies lưu sessionId, nếu k có Id thì k sử dụng đc session
+- Nếu muốn lưu jwt của user vô trong db thì nên lưu phần thứ 3 thôi. Chính là phần signature, nếu revolke hay logout thì chỉ cần xoá record đó thôi
 
 ===============================================================================================================================
 

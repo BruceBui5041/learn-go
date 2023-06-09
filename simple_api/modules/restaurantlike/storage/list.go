@@ -16,7 +16,8 @@ func (s sqlStore) GetRestaurantLikes(ctx context.Context, ids []int) (map[int]in
 
 	var listLikes []sqlData
 
-	if err := s.db.Table(restaurantlikemodel.Like{}.TableName()).Select("restaurant_id, count(restaurant_id) as count").
+	if err := s.db.Table(restaurantlikemodel.Like{}.TableName()).
+		Select("restaurant_id, count(restaurant_id) as count").
 		Where("restaurant_id in (?)", ids).
 		Group("restaurant_id").Find(&listLikes).Error; err != nil {
 		return nil, common.ErrDB(err)
