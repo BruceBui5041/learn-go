@@ -119,10 +119,12 @@ func ErrEntityExisted(entity string, err error) *AppError {
 }
 
 func ErrEntityNotFound(entity string, err error) *AppError {
-	return NewCustomError(
+	return NewFullErrorResponse(
+		http.StatusNotFound,
 		err,
 		fmt.Sprintf("%s not found", strings.ToLower(entity)),
 		fmt.Sprintf("Err%sNotFound", entity),
+		"ErrEntityNotFound",
 	)
 }
 
@@ -135,5 +137,5 @@ func ErrCannotCreateEntity(entity string, err error) *AppError {
 }
 
 func ErrNoPermission(err error) *AppError {
-	return NewCustomError(err, "Permission Denied", "ErrNoPermission")
+	return NewUnauthorized(err, "Permission Denied", "ErrNoPermission", "Unauthorized")
 }

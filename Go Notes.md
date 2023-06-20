@@ -20,8 +20,9 @@ Dưới đây là một số thực hành tốt nhất khi phát triển Golang:
 
 ## Cơ sở dữ liệu
 
-- Để tăng tốc độ tìm kiếm trong cơ sở dữ liệu có quan hệ Many2Many, hãy đánh chỉ mục bảng có nhiều bản ghi hơn trước
+- Để tăng tốc độ tìm kiếm trong cơ sở dữ liệu có quan hệ Many2Many, hãy đánh index bảng có nhiều record hơn trước
 - Để tăng tốc độ load page nhất là với infinity scroll thì nên dùng Seek Method (tìm kiếm `<` `>` với id) thay vì OFFSET trong DB
+- Preload trong gorm không phải là Join nên sẽ có thể về null nếu table được Preload k có key trên table chính
 
 ## Yêu cầu HTTP
 

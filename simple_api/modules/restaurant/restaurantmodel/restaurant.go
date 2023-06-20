@@ -9,12 +9,14 @@ import (
 const Entity = "Restaurant"
 
 type Restaurant struct {
-	common.SQLModel `json:",inline"` // NOTE: json:",inline": to make it spread properties into Restaurant, not create a new SQLModel key
-	Name            string           `json:"name" gorm:"column:name;"`
-	Addr            string           `json:"address" gorm:"column:addr;"`
-	Logo            *common.Image    `json:"logo" gorm:"column:logo;"`
-	Cover           *common.Images   `json:"cover" gorm:"column:cover;"`
-	LikeCount       int              `json:"like_count" gorm:"-"`
+	common.SQLModel `json:",inline"`   // NOTE: json:",inline": to make it spread properties into Restaurant, not create a new SQLModel key
+	Name            string             `json:"name" gorm:"column:name;"`
+	UserId          int                `json:"-" gorm:"column:owner_id"`
+	Addr            string             `json:"address" gorm:"column:addr;"`
+	Logo            *common.Image      `json:"logo" gorm:"column:logo;"`
+	Cover           *common.Images     `json:"cover" gorm:"column:cover;"`
+	LikeCount       int                `json:"like_count" gorm:"-"`
+	User            *common.SimpleUser `json:"user" gorm:"preload:false;"`
 }
 
 func (Restaurant) TableName() string {
@@ -26,7 +28,8 @@ type RestaurantUpdate struct {
 	Addr *string       `json:"address" gorm:"column:addr;"`
 	Logo *common.Image `json:"logo" gorm:"column:logo;"`
 	// NOTE: Nếu sử dụng []Image thì sẽ gặp lỗi nên phải tạo alias Images type trong common để sử dụng
-	Cover *common.Images `json:"cover" gorm:"column:cover;"`
+	Cover  *common.Images `json:"cover" gorm:"column:cover;"`
+	UserId int            `json:"-" gorm:"column:owner_id"`
 }
 
 func (RestaurantUpdate) TableName() string {
@@ -39,7 +42,7 @@ type RestaurantCreate struct {
 	Addr            string           `json:"address" gorm:"column:addr;"`
 	Logo            *common.Image    `json:"logo" gorm:"column:logo;"`
 	Cover           *common.Images   `json:"cover" gorm:"column:cover;"`
-	OwnerId         int              `json:"-" gorm:"owner_id"`
+	UserId          int              `json:"-" gorm:"column:owner_id"`
 }
 
 func (RestaurantCreate) TableName() string {
@@ -59,6 +62,10 @@ func (res *RestaurantCreate) Validate() error {
 // This to parse DB id into custome UID before send back to client
 func (data *Restaurant) Mask(isAdminOrOwner bool) {
 	data.GenUID(common.DbTypeRestaurant)
+
+	if user := data.User; user != nil {
+		data.User.Mask(false)
+	}
 }
 
 // This to parse DB id into custome UID before send back to client

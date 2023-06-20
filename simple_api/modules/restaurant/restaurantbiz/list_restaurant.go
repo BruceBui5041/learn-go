@@ -37,8 +37,8 @@ func (biz *listRestaurantBiz) ListRestaurant(
 	paging *common.Paging,
 	moreKeys ...string,
 ) ([]restaurantmodel.Restaurant, error) {
-
-	restaurants, err := biz.store.ListDataByCondition(ctx, nil, filter, paging)
+	// NOTE: "User" is the key in the Restaurant struct not the table name of User struct
+	restaurants, err := biz.store.ListDataByCondition(ctx, nil, filter, paging, "User")
 
 	if err != nil {
 		return nil, common.ErrCannotListEntity(restaurantmodel.Entity, err)
