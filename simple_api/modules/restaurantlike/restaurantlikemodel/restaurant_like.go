@@ -17,3 +17,19 @@ type Like struct {
 func (like Like) TableName() string {
 	return "restaurant_likes"
 }
+
+func ErrCannotLikeRestaurant(err error) *common.AppError {
+	return common.NewCustomError(
+		err,
+		"Cannot like restaurant",
+		"ErrCannotLikeRestaurant",
+	)
+}
+
+func ErrCannotUnlikeRestaurant(err error) *common.AppError {
+	return common.NewCustomError(
+		err,
+		"Cannot unlike restaurant",
+		"ErrCannotUnlikeRestaurant",
+	)
+}

@@ -88,6 +88,8 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSe
 		restaurants.DELETE("/:id", ginrestaurant.DeleteRestaurant(appContext))
 
 		restaurants.GET("/:id/liked-users", ginrestaurantlike.ListUserLikeRestaurant(appContext))
+		restaurants.POST("/:id/like", ginrestaurantlike.UserLikeRestaurant(appContext))
+		restaurants.DELETE("/:id/unlike", ginrestaurantlike.UserUnlikeRestaurant(appContext))
 	}
 
 	return r.Run()
