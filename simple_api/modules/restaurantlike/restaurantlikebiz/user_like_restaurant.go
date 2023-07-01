@@ -19,7 +19,10 @@ type userLikeRestaurantBiz struct {
 	increaseStore IncreaseLikeCountStore
 }
 
-func NewUserLikeRestaurantBiz(store UsersLikeRestaurantStore, increaseStore IncreaseLikeCountStore) *userLikeRestaurantBiz {
+func NewUserLikeRestaurantBiz(
+	store UsersLikeRestaurantStore,
+	increaseStore IncreaseLikeCountStore,
+) *userLikeRestaurantBiz {
 	return &userLikeRestaurantBiz{store: store, increaseStore: increaseStore}
 }
 
