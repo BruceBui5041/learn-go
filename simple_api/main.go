@@ -8,6 +8,8 @@ import (
 	"learn-go/simple_api/modules/restaurantlike/restaurantliketransport/ginrestaurantlike"
 	"learn-go/simple_api/modules/upload/uploadtransport/ginupload"
 	"learn-go/simple_api/modules/user/usertransport/ginuser"
+	"learn-go/simple_api/pubsub/pblocal"
+	"learn-go/simple_api/subscriber"
 	"log"
 	"net/http"
 	"os"
@@ -59,7 +61,9 @@ func main() {
 }
 
 func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSecretToken string) error {
-	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken)
+	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken, pblocal.NewPubSub())
+
+	subscriber.SetUp(appContext)
 
 	r := gin.Default()
 

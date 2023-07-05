@@ -3,8 +3,8 @@ package restaurantlikebiz
 import (
 	"context"
 	"learn-go/simple_api/common"
-	"learn-go/simple_api/component/asyncjob"
 	"learn-go/simple_api/modules/restaurantlike/restaurantlikemodel"
+	"learn-go/simple_api/pubsub"
 )
 
 type UsersLikeRestaurantStore interface {
@@ -12,20 +12,26 @@ type UsersLikeRestaurantStore interface {
 	Find(ctx context.Context, condition map[string]interface{}) (*restaurantlikemodel.Like, error)
 }
 
-type IncreaseLikeCountStore interface {
-	IncreaseLikeCount(ctx context.Context, id int) error
-}
+// type IncreaseLikeCountStore interface {
+// 	IncreaseLikeCount(ctx context.Context, id int) error
+// }
 
 type userLikeRestaurantBiz struct {
-	store         UsersLikeRestaurantStore
-	increaseStore IncreaseLikeCountStore
+	store UsersLikeRestaurantStore
+	// increaseStore IncreaseLikeCountStore
+	pubsub pubsub.Pubsub
 }
 
 func NewUserLikeRestaurantBiz(
 	store UsersLikeRestaurantStore,
-	increaseStore IncreaseLikeCountStore,
+	// increaseStore IncreaseLikeCountStore,
+	pubsub pubsub.Pubsub,
 ) *userLikeRestaurantBiz {
-	return &userLikeRestaurantBiz{store: store, increaseStore: increaseStore}
+	return &userLikeRestaurantBiz{
+		store: store,
+		// increaseStore: increaseStore,
+		pubsub: pubsub,
+	}
 }
 
 func (biz *userLikeRestaurantBiz) UserLikeRestaurant(
@@ -44,16 +50,20 @@ func (biz *userLikeRestaurantBiz) UserLikeRestaurant(
 		return restaurantlikemodel.ErrCannotLikeRestaurant(err)
 	}
 
+	biz.pubsub.Publish(ctx, common.TopicUserLikeRestaurant, pubsub.NewMessage(data))
+
+	// Solution 2
 	// This is consider as side effect so no need to handle error
-	go func() {
-		defer common.AppRecover()
-		job := asyncjob.NewJob(func(ctx context.Context) error {
-			return biz.increaseStore.IncreaseLikeCount(ctx, data.RestaurantId)
-		})
+	// go func() {
+	// 	defer common.AppRecover()
+	// 	job := asyncjob.NewJob(func(ctx context.Context) error {
+	// 		return biz.increaseStore.IncreaseLikeCount(ctx, data.RestaurantId)
+	// 	})
 
-		_ = asyncjob.NewGroup(true, job).Run(ctx)
-	}()
+	// 	_ = asyncjob.NewGroup(true, job).Run(ctx)
+	// }()
 
+	// Solution 1
 	// This is consider as side effect so no need to handle error
 	// go func() {
 	// 	defer common.AppRecover()

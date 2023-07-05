@@ -27,19 +27,19 @@ func (g *group) Run(ctx context.Context) error {
 
 	errChan := make(chan error, len(g.jobs))
 
-	for i, _ := range g.jobs {
+	for _, job := range g.jobs {
 
 		if g.isConcurrent {
 			// Do this instead
 			go func(aj Job) {
 				errChan <- g.runJob(ctx, aj)
 				g.wg.Done()
-			}(g.jobs[i])
+			}(job)
 
 			continue
 		}
 
-		job := g.jobs[i]
+		job := job
 		errChan <- g.runJob(ctx, job)
 		g.wg.Done()
 	}

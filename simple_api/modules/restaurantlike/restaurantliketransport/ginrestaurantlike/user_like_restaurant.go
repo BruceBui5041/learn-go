@@ -3,7 +3,6 @@ package ginrestaurantlike
 import (
 	"learn-go/simple_api/common"
 	"learn-go/simple_api/component"
-	"learn-go/simple_api/modules/restaurant/restaurantstorage"
 	"learn-go/simple_api/modules/restaurantlike/restaurantlikebiz"
 	"learn-go/simple_api/modules/restaurantlike/restaurantlikemodel"
 	restaurantlikestorage "learn-go/simple_api/modules/restaurantlike/storage"
@@ -30,8 +29,7 @@ func UserLikeRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 		}
 
 		restaurantLikeStore := restaurantlikestorage.NewSQLStore(appCtx.GetMainDBConnection())
-		restaurantStore := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-		biz := restaurantlikebiz.NewUserLikeRestaurantBiz(restaurantLikeStore, restaurantStore)
+		biz := restaurantlikebiz.NewUserLikeRestaurantBiz(restaurantLikeStore, appCtx.GetPubSub())
 
 		err = biz.UserLikeRestaurant(c.Request.Context(), &restaurantLike)
 
