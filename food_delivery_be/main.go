@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"learn-go/food_delivery_be/component"
 	"learn-go/food_delivery_be/component/uploadprovider"
 	"learn-go/food_delivery_be/middleware"
@@ -20,6 +21,11 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	socketio "github.com/googollee/go-socket.io"
+	"github.com/googollee/go-socket.io/engineio"
+	"github.com/googollee/go-socket.io/engineio/transport"
+	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 )
 
 func main() {
@@ -73,6 +79,9 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSe
 	// NOTE: Sử dung middleware
 	r.Use(middleware.Recover(appContext))
 
+	// server demo.html static file to test socketio
+	r.StaticFile("/demo/", "./demo.html")
+
 	r.GET("/ping", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -99,5 +108,56 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSe
 		restaurants.DELETE("/:id/unlike", ginrestaurantlike.UserUnlikeRestaurant(appContext))
 	}
 
+	startSocketIOServer(r, appContext)
+
 	return r.Run()
+}
+
+func startSocketIOServer(engine *gin.Engine, appCtx component.AppContext) {
+	server, _ := socketio.NewServer(&engineio.Options{
+		// ép kiểu về websocket luôn vi có thể nó sẽ tạo ra transport theo Long-polling nếu client k support
+		Transports: []transport.Transport{websocket.Default},
+	})
+
+	server.OnConnect("/", func(c socketio.Conn) error {
+		fmt.Println("Connected: ", c.ID(), " Ip:", c.RemoteAddr())
+
+		return nil
+	})
+
+	server.OnError("/", func(c socketio.Conn, err error) {
+		fmt.Println("Connect error: ", err)
+	})
+
+	server.OnDisconnect("/", func(c socketio.Conn, reason string) {
+		fmt.Println("Disconnected: ", reason)
+	})
+
+	server.OnEvent("/", "authenticate", func(c socketio.Conn, token string) {
+
+	})
+
+	server.OnEvent("/", "test", func(c socketio.Conn, message string) {
+		log.Println(message)
+	})
+
+	type Person struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	server.OnEvent("/", "notice", func(c socketio.Conn, p Person) {
+		fmt.Println("Server recieved notice: ", p.Name, p.Age)
+
+		p.Age = 33
+
+		c.Emit("notice", p)
+	})
+
+	go server.Serve()
+
+	// bản chất của socket.io nó phải từ http đi lên
+	// nên phải có 1 req đi lên để xin quyền upgrade
+	engine.GET("/socket.io/*any", gin.WrapH(server))
+	engine.POST("/socket.io/*any", gin.WrapH(server))
 }

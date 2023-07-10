@@ -75,18 +75,18 @@ func (ps *localPubSub) Subscribe(ctx context.Context, channel pubsub.Topic) (ch 
 
 }
 
-func (ps *localPubSub) run() error {
+func (pb *localPubSub) run() error {
 	log.Println("Pubsub started")
 
 	go func() {
 		for {
-			mess := <-ps.messageQueue
-			log.Println("Message dequeue:", mess)
+			msg := <-pb.messageQueue
+			log.Println("Message dequeue:", msg)
 
-			if subs, ok := ps.mapChannel[mess.Channel()]; ok {
+			if subs, ok := pb.mapChannel[msg.Channel()]; ok {
 				for i := range subs {
 					go func(c chan *pubsub.Message) {
-						c <- mess
+						c <- msg
 					}(subs[i])
 				}
 			}

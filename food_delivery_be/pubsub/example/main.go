@@ -10,13 +10,13 @@ import (
 
 func main() {
 	var localPb pubsub.Pubsub = pblocal.NewPubSub()
-	chn := pubsub.Topic("OrderCreated")
+	topic := pubsub.Topic("OrderCreated")
 
-	con1, close1 := localPb.Subscribe(context.Background(), chn)
-	con2, _ := localPb.Subscribe(context.Background(), chn)
+	con1, close1 := localPb.Subscribe(context.Background(), topic)
+	con2, _ := localPb.Subscribe(context.Background(), topic)
 
-	localPb.Publish(context.Background(), chn, pubsub.NewMessage(1))
-	localPb.Publish(context.Background(), chn, pubsub.NewMessage(2))
+	localPb.Publish(context.Background(), topic, pubsub.NewMessage(1))
+	localPb.Publish(context.Background(), topic, pubsub.NewMessage(2))
 
 	go func() {
 		for {
@@ -36,7 +36,7 @@ func main() {
 	close1()
 	// close2()
 
-	localPb.Publish(context.Background(), chn, pubsub.NewMessage(3))
+	localPb.Publish(context.Background(), topic, pubsub.NewMessage(3))
 
 	time.Sleep(time.Second * 2)
 }
