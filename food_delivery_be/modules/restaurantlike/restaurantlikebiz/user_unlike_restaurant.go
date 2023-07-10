@@ -3,8 +3,8 @@ package restaurantlikebiz
 import (
 	"context"
 	"learn-go/food_delivery_be/common"
-	"learn-go/food_delivery_be/component/asyncjob"
 	"learn-go/food_delivery_be/modules/restaurantlike/restaurantlikemodel"
+	"learn-go/food_delivery_be/pubsub"
 )
 
 type UserUnlikeRestaurantStore interface {
@@ -17,12 +17,21 @@ type DecreaseLikeCountStore interface {
 }
 
 type userUnlikeRestaurantBiz struct {
-	store             UserUnlikeRestaurantStore
-	decreaseLikeStore DecreaseLikeCountStore
+	store UserUnlikeRestaurantStore
+	// decreaseLikeStore DecreaseLikeCountStore
+	pubsub pubsub.Pubsub
 }
 
-func NewUserUnlikeRestaurantBiz(store UserUnlikeRestaurantStore, decreaseLikeStore DecreaseLikeCountStore) *userUnlikeRestaurantBiz {
-	return &userUnlikeRestaurantBiz{store: store, decreaseLikeStore: decreaseLikeStore}
+func NewUserUnlikeRestaurantBiz(
+	store UserUnlikeRestaurantStore,
+	// decreaseLikeStore DecreaseLikeCountStore,
+	pubsub pubsub.Pubsub,
+) *userUnlikeRestaurantBiz {
+	return &userUnlikeRestaurantBiz{
+		store: store,
+		// decreaseLikeStore: decreaseLikeStore,
+		pubsub: pubsub,
+	}
 }
 
 func (biz *userUnlikeRestaurantBiz) UserUnlikeRestaurant(
@@ -41,15 +50,17 @@ func (biz *userUnlikeRestaurantBiz) UserUnlikeRestaurant(
 		return restaurantlikemodel.ErrCannotUnlikeRestaurant(err)
 	}
 
-	// This is consider as side effect so no need to handle error
-	go func() {
-		defer common.AppRecover()
-		job := asyncjob.NewJob(func(ctx context.Context) error {
-			return biz.decreaseLikeStore.DecreaseLikeCount(ctx, restaurantId)
-		})
+	biz.pubsub.Publish(ctx, common.TopicUserDislikeRestaurant, pubsub.NewMessage(restaurantId))
 
-		_ = asyncjob.NewGroup(true, job).Run(ctx)
-	}()
+	// This is consider as side effect so no need to handle error
+	// go func() {
+	// 	defer common.AppRecover()
+	// 	job := asyncjob.NewJob(func(ctx context.Context) error {
+	// 		return biz.decreaseLikeStore.DecreaseLikeCount(ctx, restaurantId)
+	// 	})
+
+	// 	_ = asyncjob.NewGroup(true, job).Run(ctx)
+	// }()
 
 	// This is consider as side effect so no need to handle error
 	// go func() {

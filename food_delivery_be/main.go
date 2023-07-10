@@ -63,7 +63,10 @@ func main() {
 func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSecretToken string) error {
 	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken, pblocal.NewPubSub())
 
-	subscriber.SetUp(appContext)
+	// subscriber.SetUp(appContext)
+	if err := subscriber.NewEngine(appContext).Start(); err != nil {
+		log.Fatal(err)
+	}
 
 	r := gin.Default()
 

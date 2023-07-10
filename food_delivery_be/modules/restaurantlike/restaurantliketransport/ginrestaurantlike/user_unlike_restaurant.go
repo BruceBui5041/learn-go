@@ -3,7 +3,6 @@ package ginrestaurantlike
 import (
 	"learn-go/food_delivery_be/common"
 	"learn-go/food_delivery_be/component"
-	"learn-go/food_delivery_be/modules/restaurant/restaurantstorage"
 	"learn-go/food_delivery_be/modules/restaurantlike/restaurantlikebiz"
 	restaurantlikestorage "learn-go/food_delivery_be/modules/restaurantlike/storage"
 	"net/http"
@@ -24,8 +23,7 @@ func UserUnlikeRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 		requester := c.MustGet(common.CurrentUser).(common.Requester)
 
 		restaurantLikeStore := restaurantlikestorage.NewSQLStore(appCtx.GetMainDBConnection())
-		restaurantStore := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-		biz := restaurantlikebiz.NewUserUnlikeRestaurantBiz(restaurantLikeStore, restaurantStore)
+		biz := restaurantlikebiz.NewUserUnlikeRestaurantBiz(restaurantLikeStore, appCtx.GetPubSub())
 
 		err = biz.UserUnlikeRestaurant(c.Request.Context(), requester.GetUserId(), int(uid.GetLocalID()))
 
