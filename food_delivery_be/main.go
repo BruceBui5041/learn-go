@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"learn-go/food_delivery_be/component"
+	"learn-go/food_delivery_be/component/tokenprovider/jwt"
 	"learn-go/food_delivery_be/component/uploadprovider"
 	"learn-go/food_delivery_be/middleware"
 	"learn-go/food_delivery_be/modules/restaurant/restauranttransport/ginrestaurant"
 	"learn-go/food_delivery_be/modules/restaurantlike/restaurantliketransport/ginrestaurantlike"
 	"learn-go/food_delivery_be/modules/upload/uploadtransport/ginupload"
+	"learn-go/food_delivery_be/modules/user/userstorage"
 	"learn-go/food_delivery_be/modules/user/usertransport/ginuser"
 	"learn-go/food_delivery_be/pubsub/pblocal"
 	"learn-go/food_delivery_be/subscriber"
@@ -80,7 +84,7 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSe
 	r.Use(middleware.Recover(appContext))
 
 	// server demo.html static file to test socketio
-	r.StaticFile("/demo/", "./demo.html")
+	r.StaticFile("/demo/", "./demo/demo.html")
 
 	r.GET("/ping", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
@@ -134,7 +138,34 @@ func startSocketIOServer(engine *gin.Engine, appCtx component.AppContext) {
 	})
 
 	server.OnEvent("/", "authenticate", func(c socketio.Conn, token string) {
+		db := appCtx.GetMainDBConnection()
+		store := userstorage.NewSQLStore(db)
+		tokenProvider := jwt.NewTokenJWTProvider(appCtx.SecretKey())
 
+		user_payload, err := tokenProvider.Validate(token)
+
+		if err != nil {
+			c.Emit("authentication failed", err.Error())
+			c.Close()
+			return
+		}
+
+		user, err := store.FindUser(context.Background(), map[string]interface{}{"id": user_payload.UserId})
+		if err != nil {
+			c.Emit("authentication failed", err.Error())
+			c.Close()
+			return
+		}
+
+		if user.Status == 0 {
+			c.Emit("authentication failed", errors.New("you has been banned or deleted"))
+			c.Close()
+			return
+		}
+
+		user.Mask(false)
+
+		c.Emit("authenticated", user)
 	})
 
 	server.OnEvent("/", "test", func(c socketio.Conn, message string) {
