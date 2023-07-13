@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/pubsub"
 	"learn-go/food_delivery_be/pubsub/pblocal"
 	"log"
@@ -9,7 +10,9 @@ import (
 )
 
 func main() {
-	var localPb pubsub.Pubsub = pblocal.NewPubSub()
+	rtEngine := appsocketio.NewEngine()
+
+	var localPb pubsub.Pubsub = pblocal.NewPubSub(rtEngine)
 	topic := pubsub.Topic("OrderCreated")
 
 	con1, close1 := localPb.Subscribe(context.Background(), topic)

@@ -2,12 +2,13 @@ package subscriber
 
 import (
 	"context"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/component"
 	"learn-go/food_delivery_be/modules/restaurant/restaurantstorage"
 	"learn-go/food_delivery_be/pubsub"
 )
 
-func RunDecreaseLikeCountAfterUserUnlikedRestaurant(appCtx component.AppContext) consumerJob {
+func RunDecreaseLikeCountAfterUserUnlikedRestaurant(appCtx component.AppContext, rtEngine appsocketio.RealtimeEngine) consumerJob {
 	return consumerJob{
 		Title: "Decrease like count after user unliked restaurant",
 		Hld: func(ctx context.Context, message *pubsub.Message) error {

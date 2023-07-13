@@ -1,17 +1,13 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/component"
-	"learn-go/food_delivery_be/component/tokenprovider/jwt"
 	"learn-go/food_delivery_be/component/uploadprovider"
 	"learn-go/food_delivery_be/middleware"
 	"learn-go/food_delivery_be/modules/restaurant/restauranttransport/ginrestaurant"
 	"learn-go/food_delivery_be/modules/restaurantlike/restaurantliketransport/ginrestaurantlike"
 	"learn-go/food_delivery_be/modules/upload/uploadtransport/ginupload"
-	"learn-go/food_delivery_be/modules/user/userstorage"
 	"learn-go/food_delivery_be/modules/user/usertransport/ginuser"
 	"learn-go/food_delivery_be/pubsub/pblocal"
 	"learn-go/food_delivery_be/subscriber"
@@ -25,11 +21,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-
-	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
-	"github.com/googollee/go-socket.io/engineio/transport"
-	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 )
 
 func main() {
@@ -71,14 +62,19 @@ func main() {
 }
 
 func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSecretToken string) error {
-	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken, pblocal.NewPubSub())
+	rtEngine := appsocketio.NewEngine()
 
-	// subscriber.SetUp(appContext)
-	if err := subscriber.NewEngine(appContext).Start(); err != nil {
+	appContext := component.NewAppContext(db, uploadProvider, jwtSecretToken, pblocal.NewPubSub(rtEngine))
+	r := gin.Default()
+
+	if err := rtEngine.Run(appContext, r); err != nil {
 		log.Fatal(err)
 	}
 
-	r := gin.Default()
+	// subscriber.SetUp(appContext)
+	if err := subscriber.NewEngine(appContext, rtEngine).Start(); err != nil {
+		log.Fatal(err)
+	}
 
 	// NOTE: Sử dung middleware
 	r.Use(middleware.Recover(appContext))
@@ -112,83 +108,81 @@ func runService(db *gorm.DB, uploadProvider uploadprovider.UploadProvider, jwtSe
 		restaurants.DELETE("/:id/unlike", ginrestaurantlike.UserUnlikeRestaurant(appContext))
 	}
 
-	startSocketIOServer(r, appContext)
-
 	return r.Run()
 }
 
-func startSocketIOServer(engine *gin.Engine, appCtx component.AppContext) {
-	server, _ := socketio.NewServer(&engineio.Options{
-		// ép kiểu về websocket luôn vi có thể nó sẽ tạo ra transport theo Long-polling nếu client k support
-		Transports: []transport.Transport{websocket.Default},
-	})
+// func startSocketIOServer(engine *gin.Engine, appCtx component.AppContext) {
+// 	server, _ := socketio.NewServer(&engineio.Options{
+// 		// ép kiểu về websocket luôn vi có thể nó sẽ tạo ra transport theo Long-polling nếu client k support
+// 		Transports: []transport.Transport{websocket.Default},
+// 	})
 
-	server.OnConnect("/", func(c socketio.Conn) error {
-		fmt.Println("Connected: ", c.ID(), " Ip:", c.RemoteAddr())
+// 	server.OnConnect("/", func(c socketio.Conn) error {
+// 		fmt.Println("Connected: ", c.ID(), " Ip:", c.RemoteAddr())
 
-		return nil
-	})
+// 		return nil
+// 	})
 
-	server.OnError("/", func(c socketio.Conn, err error) {
-		fmt.Println("Connect error: ", err)
-	})
+// 	server.OnError("/", func(c socketio.Conn, err error) {
+// 		fmt.Println("Connect error: ", err)
+// 	})
 
-	server.OnDisconnect("/", func(c socketio.Conn, reason string) {
-		fmt.Println("Disconnected: ", reason)
-	})
+// 	server.OnDisconnect("/", func(c socketio.Conn, reason string) {
+// 		fmt.Println("Disconnected: ", reason)
+// 	})
 
-	server.OnEvent("/", "authenticate", func(c socketio.Conn, token string) {
-		db := appCtx.GetMainDBConnection()
-		store := userstorage.NewSQLStore(db)
-		tokenProvider := jwt.NewTokenJWTProvider(appCtx.SecretKey())
+// 	server.OnEvent("/", "authenticate", func(c socketio.Conn, token string) {
+// 		db := appCtx.GetMainDBConnection()
+// 		store := userstorage.NewSQLStore(db)
+// 		tokenProvider := jwt.NewTokenJWTProvider(appCtx.SecretKey())
 
-		user_payload, err := tokenProvider.Validate(token)
+// 		user_payload, err := tokenProvider.Validate(token)
 
-		if err != nil {
-			c.Emit("authentication failed", err.Error())
-			c.Close()
-			return
-		}
+// 		if err != nil {
+// 			c.Emit("authentication failed", err.Error())
+// 			c.Close()
+// 			return
+// 		}
 
-		user, err := store.FindUser(context.Background(), map[string]interface{}{"id": user_payload.UserId})
-		if err != nil {
-			c.Emit("authentication failed", err.Error())
-			c.Close()
-			return
-		}
+// 		user, err := store.FindUser(context.Background(), map[string]interface{}{"id": user_payload.UserId})
+// 		if err != nil {
+// 			c.Emit("authentication failed", err.Error())
+// 			c.Close()
+// 			return
+// 		}
 
-		if user.Status == 0 {
-			c.Emit("authentication failed", errors.New("you has been banned or deleted"))
-			c.Close()
-			return
-		}
+// 		if user.Status == 0 {
+// 			c.Emit("authentication failed", errors.New("you has been banned or deleted"))
+// 			c.Close()
+// 			return
+// 		}
 
-		user.Mask(false)
+// 		user.Mask(false)
 
-		c.Emit("authenticated", user)
-	})
+// 		c.Emit("authenticated", user)
+// 	})
 
-	server.OnEvent("/", "test", func(c socketio.Conn, message string) {
-		log.Println(message)
-	})
+// 	server.OnEvent("/", "test", func(c socketio.Conn, message string) {
+// 		log.Println(message)
+// 	})
 
-	type Person struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}
+// 	type Person struct {
+// 		Name string `json:"name"`
+// 		Age  int    `json:"age"`
+// 	}
 
-	server.OnEvent("/", "notice", func(c socketio.Conn, p Person) {
-		fmt.Println("Server recieved notice: ", p.Name, p.Age)
+// 	server.OnEvent("/", "notice", func(c socketio.Conn, p Person) {
+// 		fmt.Println("Server recieved notice: ", p.Name, p.Age)
 
-		p.Age = 33
+// 		p.Age = 33
 
-		c.Emit("notice", p)
-	})
+// 		c.Emit("notice", p)
+// 	})
 
-	go server.Serve()
+// 	go server.Serve()
 
-	// bản chất của socket.io nó phải từ http đi lên
-	// nên phải có 1 req đi lên để xin quyền upgrade
-	engine.GET("/socket.io/*any", gin.WrapH(server))
-	engine.POST("/socket.io/*any", gin.WrapH(server))
-}
+// 	// bản chất của socket.io nó phải từ http đi lên
+// 	// nên phải có 1 req đi lên để xin quyền upgrade
+// 	engine.GET("/socket.io/*any", gin.WrapH(server))
+// 	engine.POST("/socket.io/*any", gin.WrapH(server))
+// }

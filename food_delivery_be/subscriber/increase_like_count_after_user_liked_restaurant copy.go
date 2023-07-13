@@ -2,6 +2,7 @@ package subscriber
 
 import (
 	"context"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/component"
 	"learn-go/food_delivery_be/modules/restaurant/restaurantstorage"
 	"learn-go/food_delivery_be/pubsub"
@@ -9,6 +10,7 @@ import (
 
 type HasRestaurantId interface {
 	GetRestaurantId() int
+	GetUserId() int
 }
 
 // func IncreaseLikeCountAfterUserLikedRestaurant(appCtx component.AppContext, ctx context.Context) {
@@ -39,7 +41,19 @@ func RunIncreaseLikeCountAfterUserLikedRestaurant(appCtx component.AppContext) c
 		Hld: func(ctx context.Context, message *pubsub.Message) error {
 			store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
 			var like = message.Data().(HasRestaurantId)
+
 			return store.IncreaseLikeCount(ctx, like.GetRestaurantId())
+		},
+	}
+}
+
+func EmmitRealtimeAfterUserLikedRestaurant(appCtx component.AppContext, rtEngine appsocketio.RealtimeEngine) consumerJob {
+	return consumerJob{
+		Title: "Increase like count after user liked restaurant",
+		Hld: func(ctx context.Context, message *pubsub.Message) error {
+			var like = message.Data().(HasRestaurantId)
+			userId := like.GetUserId()
+			return rtEngine.EmmitToUser(userId, string(message.Channel()), like)
 		},
 	}
 }

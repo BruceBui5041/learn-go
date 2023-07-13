@@ -17,7 +17,7 @@ import (
 )
 
 type RealtimeEngine interface {
-	UserSockets(userId int) []AppSocket // Note: this is because 1 user can use more than 1 device
+	UserSockets(userId int) []AppSocket // Note: this is because 1 user can use more than 1 device or multiple browser tab
 	EmmitToRoom(room string, key string, data interface{}) error
 	EmmitToUser(userId int, key string, data interface{}) error
 	Run(ctx component.AppContext, ginEngine *gin.Engine) error
@@ -29,12 +29,8 @@ type rtEngine struct {
 	locker  *sync.RWMutex
 }
 
-func NewEngine(
-	server *socketio.Server,
-	storage map[int][]AppSocket,
-	locker *sync.RWMutex,
-) *rtEngine {
-	return &rtEngine{server: server, storage: storage, locker: locker}
+func NewEngine() *rtEngine {
+	return &rtEngine{storage: make(map[int][]AppSocket), locker: new(sync.RWMutex)}
 }
 
 func (engine *rtEngine) saveAppSocket(userId int, appSpcket AppSocket) {
@@ -49,9 +45,9 @@ func (engine *rtEngine) saveAppSocket(userId int, appSpcket AppSocket) {
 }
 
 func (engine *rtEngine) getAppSocket(userId int) []AppSocket {
-	engine.locker.Lock()
+	engine.locker.RLock() // Note: RLock because only do read here
 
-	defer engine.locker.Unlock()
+	defer engine.locker.RUnlock()
 	return engine.storage[userId]
 }
 
@@ -95,10 +91,14 @@ func (engine *rtEngine) EmmitToUser(userId int, key string, data interface{}) er
 }
 
 func (engine *rtEngine) Run(appCtx component.AppContext, ginEngine *gin.Engine) error {
-	server, _ := socketio.NewServer(&engineio.Options{
+	server, err := socketio.NewServer(&engineio.Options{
 		// ép kiểu về websocket luôn vi có thể nó sẽ tạo ra transport theo Long-polling nếu client k support
 		Transports: []transport.Transport{websocket.Default},
 	})
+
+	if err != nil {
+		return err
+	}
 
 	server.OnConnect("/", func(c socketio.Conn) error {
 		fmt.Println("Connected: ", c.ID(), " Ip:", c.RemoteAddr())
@@ -127,7 +127,7 @@ func (engine *rtEngine) Run(appCtx component.AppContext, ginEngine *gin.Engine) 
 			return
 		}
 
-		user, err := store.FindUser(context.Background(), map[string]interface{}{"id": user_payload.UserId})
+		requester, err := store.FindUser(context.Background(), map[string]interface{}{"id": user_payload.UserId})
 
 		if err != nil {
 			c.Emit("authentication failed", err.Error())
@@ -135,18 +135,18 @@ func (engine *rtEngine) Run(appCtx component.AppContext, ginEngine *gin.Engine) 
 			return
 		}
 
-		if user.Status == 0 {
+		if requester.Status == 0 {
 			c.Emit("authentication failed", errors.New("you has been banned or deleted"))
 			c.Close()
 			return
 		}
 
-		appSkt := NewAppSocket(c, user)
-		engine.saveAppSocket(user.Id, appSkt)
+		requester.Mask(false)
 
-		user.Mask(false)
+		appSkt := NewAppSocket(c, requester)
+		engine.saveAppSocket(requester.Id, appSkt)
 
-		c.Emit("authenticated", user)
+		c.Emit("authenticated", requester)
 	})
 
 	go server.Serve()

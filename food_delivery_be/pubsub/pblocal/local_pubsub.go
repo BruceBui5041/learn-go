@@ -2,6 +2,7 @@ package pblocal
 
 import (
 	"context"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/common"
 	"learn-go/food_delivery_be/pubsub"
 	"log"
@@ -18,7 +19,7 @@ type localPubSub struct {
 	locker       *sync.RWMutex
 }
 
-func NewPubSub() *localPubSub {
+func NewPubSub(realtimeEngine appsocketio.RealtimeEngine) *localPubSub {
 	pb := &localPubSub{
 		messageQueue: make(chan *pubsub.Message, 10000),
 		mapChannel:   make(map[pubsub.Topic][]chan *pubsub.Message),

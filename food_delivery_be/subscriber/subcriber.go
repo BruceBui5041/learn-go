@@ -2,6 +2,7 @@ package subscriber
 
 import (
 	"context"
+	"learn-go/food_delivery_be/appsocketio"
 	"learn-go/food_delivery_be/common"
 	"learn-go/food_delivery_be/component"
 	"learn-go/food_delivery_be/component/asyncjob"
@@ -15,11 +16,12 @@ type consumerJob struct {
 }
 
 type consumerEngine struct {
-	appCtx component.AppContext
+	appCtx         component.AppContext
+	realtimeEngine appsocketio.RealtimeEngine
 }
 
-func NewEngine(appCtx component.AppContext) *consumerEngine {
-	return &consumerEngine{appCtx: appCtx}
+func NewEngine(appCtx component.AppContext, realtimeEngine appsocketio.RealtimeEngine) *consumerEngine {
+	return &consumerEngine{appCtx: appCtx, realtimeEngine: realtimeEngine}
 }
 
 func (engine *consumerEngine) Start() error {
@@ -27,12 +29,13 @@ func (engine *consumerEngine) Start() error {
 		common.TopicUserLikeRestaurant,
 		true,
 		RunIncreaseLikeCountAfterUserLikedRestaurant(engine.appCtx),
+		EmmitRealtimeAfterUserLikedRestaurant(engine.appCtx, engine.realtimeEngine),
 	)
 
 	engine.startSubscribeTopic(
 		common.TopicUserDislikeRestaurant,
 		true,
-		RunDecreaseLikeCountAfterUserUnlikedRestaurant(engine.appCtx),
+		RunDecreaseLikeCountAfterUserUnlikedRestaurant(engine.appCtx, engine.realtimeEngine),
 	)
 	return nil
 }
