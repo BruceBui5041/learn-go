@@ -7,6 +7,7 @@ import (
 	"learn-go/food_delivery_be/component"
 	"learn-go/food_delivery_be/component/tokenprovider/jwt"
 	"learn-go/food_delivery_be/modules/user/userstorage"
+	"learn-go/food_delivery_be/modules/user/usertransport/wsuser"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -147,6 +148,9 @@ func (engine *rtEngine) Run(appCtx component.AppContext, ginEngine *gin.Engine) 
 		engine.saveAppSocket(requester.Id, appSkt)
 
 		c.Emit("authenticated", requester)
+
+		server.OnEvent("/", "UserUpdateLocation", wsuser.OnUserUpdateLocation(appCtx, requester))
+
 	})
 
 	go server.Serve()

@@ -25,13 +25,24 @@
         socket.emit('authenticate', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJfaWQiOjIsInJvbGUiOiJ1c2VyIn0sImV4cCI6MTY5MTc2NzM2NSwiaWF0IjoxNjg5MTc1MzY1fQ.qfZ1lioUQ5LuNpY_wutRHycN9T1AMfvlPVUGsbiDyFk');
     })
 
+    var intervalId = null
     socket.on('authenticated', (user) => {
         console.log(user)
+        socket.on('TopicUserLikeRestaurant', (like) => {
+            console.log(like)
+        })
+
+        if (intervalId) {
+            clearInterval(intervalId)
+        }
+
+        intervalId = setInterval(function () {
+            socket.emit('UserUpdateLocation', {lat: 123, lng: 456})
+        }, 3000)
+
     })
 
-    socket.on('TopicUserLikeRestaurant', (like) => {
-        console.log(like)
-    })
+
 
 
     // socket.on('test', (msg) => console.log(msg));

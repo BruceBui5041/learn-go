@@ -47,9 +47,9 @@ func RunIncreaseLikeCountAfterUserLikedRestaurant(appCtx component.AppContext) c
 	}
 }
 
-func EmmitRealtimeAfterUserLikedRestaurant(appCtx component.AppContext, rtEngine appsocketio.RealtimeEngine) consumerJob {
+func EmitRealtimeAfterUserLikedRestaurant(appCtx component.AppContext, rtEngine appsocketio.RealtimeEngine) consumerJob {
 	return consumerJob{
-		Title: "Increase like count after user liked restaurant",
+		Title: "Emit realtime after user liked restaurant",
 		Hld: func(ctx context.Context, message *pubsub.Message) error {
 			var like = message.Data().(HasRestaurantId)
 			userId := like.GetUserId()

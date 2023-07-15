@@ -29,7 +29,7 @@ func (engine *consumerEngine) Start() error {
 		common.TopicUserLikeRestaurant,
 		true,
 		RunIncreaseLikeCountAfterUserLikedRestaurant(engine.appCtx),
-		EmmitRealtimeAfterUserLikedRestaurant(engine.appCtx, engine.realtimeEngine),
+		EmitRealtimeAfterUserLikedRestaurant(engine.appCtx, engine.realtimeEngine),
 	)
 
 	engine.startSubscribeTopic(
